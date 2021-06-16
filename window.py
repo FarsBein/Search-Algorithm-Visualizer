@@ -83,7 +83,7 @@ class Node:
         self.color = CLAY
         
     def draw(self):
-        pygame.draw.rect(SCREEN, RED, [self.x,self.y, self.width, self.width])
+        pygame.draw.rect(SCREEN, self.color, [self.x,self.y, self.width, self.width])
         
     def update_neighbor(self, grid):
         up       = grid[self.row][self.col-1]   if self.col > 0 else None
@@ -99,9 +99,12 @@ class Node:
         for i in list_of_all_directions:
             if i:
                 self.neighbor.append(i) 
-                
-        def __it__(self, other): # to avoid error when compared
-            return False
+
+    def __str__(self): 
+        return '(row: ' + str(self.row) + ' ,col: ' + str(self.col) + ' ) ' + '(x: ' + str(self.x) + ' ,y: ' + str(self.x) + ' ) '
+
+    def __it__(self, other): # to avoid error when compared
+        return False
             
 def distance(p1,p2): # L shaped way of calculating distance
     x1, y1 = p1
@@ -121,60 +124,82 @@ def make_grid(rows, width_of_screen):
     
     return grid
             
-def draw_grid(filled, rows, width_of_screen):
-    
+def draw_grid(rows, width_of_screen):
     x = y = 0    
     node_width = width_of_screen // rows
     
-    for i in range(row):
-        pygame.draw.line(SCREEN,WHITE, (0, i*node_width), (width_of_screen, i*node_width)) # start then end. (start, distance from the top)
+    for i in range(rows):
+        pygame.draw.line(SCREEN,BLACK, (0, i*node_width), (width_of_screen, i*node_width)) # start then end. (start/end, distance from the top)
+    
+    for j in range(rows):
+        pygame.draw.line(SCREEN,BLACK, (j*node_width, 0), (j*node_width, width_of_screen)) # start then end. (distance from the left, start/end)
+    
 
-    for i in range(col):
-        pygame.draw.line(SCREEN,WHITE, (i*node_width, 0), (i*node_width, width_of_screen)) 
+def draw(grid, rows, width_of_screen):
+    SCREEN.fill(WHITE)
     
-    for a,b in filled:      
-        pygame.draw.rect(SCREEN, RED, [a,b, row_width+1, col_height+1])
+    # draw the nodes first before lines to see lines
+    for row in grid:
+        for node in row:
+            node.draw()
     
-        
+    # draw lines
+    draw_grid(rows, WIDTH)
+    
+    pygame.display.update() # Called only once per frame.
+    
+
+def get_node(coordinate, grid, rows, width_of_screen):
+    x, y = coordinate
+    node_width = width_of_screen // rows
+    
+    x = x//node_width
+    y = y//node_width
+    
+    return grid[x][y]
+   
 def main():
     
     fps = 60
     fps_clock = pygame.time.Clock()
     
-    clicked_pos = []
-    
     rows  = 20
+    grid = make_grid(rows, WIDTH)
+    
+    start = False
+    end = False
     
     while True:
-        SCREEN.fill(BLACK)
-        
-        
-        state = pygame.mouse.get_pressed()
-
+        # state = pygame.mouse.get_pressed()
         # if state != (0,0,0): print('state:', state)
         
-        draw_grid(clicked_pos, rows, WIDTH)
+        draw(grid, rows, WIDTH)
         
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 pygame.quit()
                 sys.exit()
-            if event.type == pygame.MOUSEBUTTONDOWN:
-                if event.button == 1: # left click
-                    print('LEFT event.pos:', event.pos)
+            if pygame.mouse.get_pressed()[0]: # left click
+                node = get_node(event.pos, grid, rows, WIDTH)
+                print('LEFT: ',node)
+                if not start: 
+                    start = True
+                    node.make_start()
+                elif not end: 
+                    end = True
+                    node.make_end()
+                else: 
+                    node.make_barrier()
+
+            if pygame.mouse.get_pressed()[2]: # right click
+                node = get_node(event.pos, grid, rows, WIDTH)
+                print('RIGHT: ',node)
+                if node.is_start(): 
+                    start = False
+                elif node.is_end(): 
+                    end = False
+                node.reset()
                     
-                    x,y = event.pos
-                    x = int((x/row)*(row_width))
-                    y = int(y/col)*(col_height)
-                    print('rounded:', (x,y))
-                    
-                if event.button == 3: # right click
-                    print('RIGHT event.pos:', event.pos)
-                    
-                    x,y = event.pos
-                    x = int((x/row)*(row_width))
-                    y = int(y/col)*(col_height)
-                    print('rounded:', (x,y))
                     
         pygame.display.update()
     
