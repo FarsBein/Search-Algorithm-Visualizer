@@ -176,14 +176,16 @@ def BFS(lambda_draw, grid, start, end):
     queue = Queue()
     
     queue.put(start)
-    print('start:', start)
+
     came_from = {}
     
     curr_node = None
     
     while not queue.empty():
+        # maintain the color of start and end nodes
         start.make_start()
         end.make_end()
+        
         # exit while solving 
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -202,6 +204,39 @@ def BFS(lambda_draw, grid, start, end):
                 lambda_draw()
         time.sleep(.03)
 
+def DFS(lambda_draw, grid, start, end):
+    
+    stack = [start]
+    
+    came_from = {}
+    
+    curr_node = None
+    
+    while stack:
+        # maintain the color of start and end nodes
+        start.make_start()
+        end.make_end()
+        
+        # exit while solving 
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+
+        curr_node = stack.pop()
+        
+        if curr_node == end or end in stack:
+            draw_path(lambda_draw,came_from, curr_node) # curr_node = end, so either can work
+            break
+        
+        for neighbor in curr_node.neighbors:
+            if not neighbor.is_visited():
+                neighbor.make_visited()
+                stack.append(neighbor)
+                lambda_draw()
+            elif neighbor in stack:
+                stack.pop(stack.index(neighbor))
+                
+        time.sleep(.03)
 
 def main():
     fps = 60
@@ -255,7 +290,8 @@ def main():
                     for row in grid:
                         for node in row:
                             node.update_neighbors(grid)
-                    BFS(lambda: draw(grid,lambda:draw_grid(rows, WIDTH)), grid, start, end)
+                    # BFS(lambda: draw(grid,lambda:draw_grid(rows, WIDTH)), grid, start, end)
+                    DFS(lambda: draw(grid,lambda:draw_grid(rows, WIDTH)), grid, start, end)
         pygame.display.update()
     
 main()
