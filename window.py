@@ -1,6 +1,8 @@
 import pygame
 import sys
 import random
+from queue import Queue
+import time
 
 # sys.path.append(".")
 # from node_class import Node
@@ -32,7 +34,7 @@ class Node:
         self.col = col
         self.x = width * row
         self.y = width * col
-        self.neighbor = []
+        self.neighbors = []
         self.width = width
         self.total_rows = total_rows
         self.color = WHITE
@@ -61,6 +63,12 @@ class Node:
     def is_end(self):
         return self.color == PINK
     
+    def is_empty(self):
+        return self.color == WHITE
+    
+    def is_visited(self):
+        return self.color == CLAY
+        
     def make_start(self):
         self.color = BLUE
     
@@ -76,6 +84,9 @@ class Node:
     def make_closed(self):
         self.color = RED
     
+    def make_visited(self):
+        self.color = CLAY
+    
     def reset(self):
         self.color = WHITE
         
@@ -85,25 +96,23 @@ class Node:
     def draw(self):
         pygame.draw.rect(SCREEN, self.color, [self.x,self.y, self.width, self.width])
         
-    def update_neighbor(self, grid):
-        up       = grid[self.row][self.col-1]   if self.col > 0 else None
-        down     = grid[self.row][self.col+1]   if self.col < total_rows else None
-        left     = grid[self.row-1][self.col]   if self.row > 0 else None
-        right    = grid[self.row+1][self.col]   if self.row < total_rows else None
-        up_right = grid[self.row+1][self.col-1] if self.col > 0 and self.col < total_rows else None
-        up_left  = grid[self.row-1][self.col-1] if self.col > 0 and self.col > 0 else None
-        down_right=grid[self.row+1][self.col+1] if self.col < total_rows and self.col < total_rows else None
-        down_left =grid[self.row-1][self.col+1] if self.col < total_rows and self.col > 0 else None
-        list_of_all_directions = [up, down, left, right, up_right, up_left, down_right, down_left]
-
-        for i in list_of_all_directions:
-            if i:
-                self.neighbor.append(i) 
+    def update_neighbors(self, grid):
+        up    = grid[self.row][self.col-1]   if self.col > 0                 else None
+        down  = grid[self.row][self.col+1]   if self.col < self.total_rows-1 else None
+        left  = grid[self.row-1][self.col]   if self.row > 0                 else None
+        right = grid[self.row+1][self.col]   if self.row < self.total_rows-1 else None
+        
+        four_directions = [up, down, left, right]
+        
+        for node in four_directions:
+            if node and not node.is_barrier():
+                self.neighbors.append(node)
+                # node.make_open() # for testing
 
     def __str__(self): 
         return '(row: ' + str(self.row) + ' ,col: ' + str(self.col) + ' ) ' + '(x: ' + str(self.x) + ' ,y: ' + str(self.x) + ' ) '
 
-    def __it__(self, other): # to avoid error when compared
+    def __lt__(self, other): # to avoid error when compared
         return False
             
 def distance(p1,p2): # L shaped way of calculating distance
@@ -134,8 +143,7 @@ def draw_grid(rows, width_of_screen):
     for j in range(rows):
         pygame.draw.line(SCREEN,BLACK, (j*node_width, 0), (j*node_width, width_of_screen)) # start then end. (distance from the left, start/end)
     
-
-def draw(grid, rows, width_of_screen):
+def draw(grid, lambda_draw_grid):
     SCREEN.fill(WHITE)
     
     # draw the nodes first before lines to see lines
@@ -143,12 +151,11 @@ def draw(grid, rows, width_of_screen):
         for node in row:
             node.draw()
     
-    # draw lines
-    draw_grid(rows, WIDTH)
+    # draw lines. All the needed argument already passed before call
+    lambda_draw_grid()
     
     pygame.display.update() # Called only once per frame.
     
-
 def get_node(coordinate, grid, rows, width_of_screen):
     x, y = coordinate
     node_width = width_of_screen // rows
@@ -157,50 +164,98 @@ def get_node(coordinate, grid, rows, width_of_screen):
     y = y//node_width
     
     return grid[x][y]
-   
-def main():
+
+def draw_path(lambda_draw, came_from, curr_node):
+    while curr_node in came_from:
+        curr_node = came_from[curr_node]
+        curr_node.make_path()
+        lambda_draw()
+
+def BFS(lambda_draw, grid, start, end):
     
+    queue = Queue()
+    
+    queue.put(start)
+    print('start:', start)
+    came_from = {}
+    
+    curr_node = None
+    
+    while not queue.empty():
+        start.make_start()
+        end.make_end()
+        # exit while solving 
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+
+        curr_node = queue.get()
+        
+        if curr_node == end:
+            draw_path(lambda_draw,came_from, curr_node) # curr_node = end, so either can work
+            break
+        
+        for neighbor in curr_node.neighbors:
+            if not neighbor.is_visited():
+                neighbor.make_visited()
+                queue.put(neighbor)
+                lambda_draw()
+        time.sleep(.03)
+
+
+def main():
     fps = 60
     fps_clock = pygame.time.Clock()
     
     rows  = 20
     grid = make_grid(rows, WIDTH)
     
-    start = False
-    end = False
+    start = None
+    end   = None
+    
+    solving = False
     
     while True:
-        # state = pygame.mouse.get_pressed()
-        # if state != (0,0,0): print('state:', state)
         
-        draw(grid, rows, WIDTH)
+        draw(grid,lambda:draw_grid(rows, WIDTH))
         
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 pygame.quit()
                 sys.exit()
+            
+            if solving: 
+                pass
+
             if pygame.mouse.get_pressed()[0]: # left click
                 node = get_node(event.pos, grid, rows, WIDTH)
-                print('LEFT: ',node)
-                if not start: 
-                    start = True
-                    node.make_start()
-                elif not end: 
-                    end = True
-                    node.make_end()
-                else: 
-                    node.make_barrier()
+                print('LEFT:  ',node)
+                if node.is_empty():
+                    if not start: 
+                        start = node
+                        node.make_start()
+                    elif not end: 
+                        end = node
+                        node.make_end()
+                    else: 
+                        node.make_barrier()
 
             if pygame.mouse.get_pressed()[2]: # right click
                 node = get_node(event.pos, grid, rows, WIDTH)
                 print('RIGHT: ',node)
                 if node.is_start(): 
-                    start = False
+                    start = None
                 elif node.is_end(): 
-                    end = False
+                    end = None
                 node.reset()
-                    
-                    
+            
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_SPACE and not solving and start and end:
+                    print('space!')
+                    for row in grid:
+                        for node in row:
+                            node.update_neighbors(grid)
+                    BFS(lambda: draw(grid,lambda:draw_grid(rows, WIDTH)), grid, start, end)
         pygame.display.update()
     
 main()
