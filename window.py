@@ -223,9 +223,6 @@ def BFS(lambda_draw, grid, start, end):
 def DFS(lambda_draw, grid, start, end):
     
     stack = [start]
-    
-    print('neighbors:',len(start.neighbors))
-    print('randome node:',len(grid[10][10].neighbors))
 
     came_from = {}
     
@@ -302,11 +299,12 @@ def main():
                 node.reset()
             
             if event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_SPACE and start and end:
+                if event.key == pygame.K_SPACE:
                     print('space!')
                     for row in grid:
                         for node in row:
-                            node.update_neighbors(grid)
+                            node.reset()
+                    make_borders(grid)
                     # BFS(lambda: draw(grid,lambda:draw_grid(rows, WIDTH)), grid, start, end)
                     # DFS(lambda: draw(grid,lambda:draw_grid(rows, WIDTH)), grid, start, end)
                    
@@ -316,11 +314,6 @@ def main():
                         for node in row:
                             if not node.is_start() and not node.is_end() and not node.is_barrier():
                                 node.reset()
-                            
-                            if node.is_visited() == True:
-                                print('node:',node)
-                                # print('node.is_visited():',node.is_visited())
-                    print('restart DONE!\n')
                     
                 if event.key == pygame.K_d and start and end:
                     print('DFS!')
