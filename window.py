@@ -112,19 +112,12 @@ class Node:
         for node in four_directions:
             if node and not node.is_barrier():
                 self.neighbors.append(node)
-                # node.make_open() # for testing
 
     def __str__(self): 
         return '(row: ' + str(self.row) + ' ,col: ' + str(self.col) + ' ) ' + '(x: ' + str(self.x) + ' ,y: ' + str(self.x) + ' ) '
 
     def __lt__(self, other): # to avoid error when compared
         return False
-            
-def distance(p1,p2): # L shaped way of calculating distance
-    x1, y1 = p1
-    x2, y2 = p2
-    
-    return abs(x2-x1) + abs(y2-y1)
 
 def make_grid(rows, width_of_screen):
     grid = []
@@ -254,7 +247,6 @@ def DFS(lambda_draw, grid, start, end):
 
         time.sleep(.03)
     
-
 def main():
     fps = 60
     fps_clock = pygame.time.Clock()
