@@ -10,7 +10,7 @@ import time
 
 pygame.init() # initialize all imported pygame modules. No exceptions will be raised if a module fails
 
-WIDTH = 800; HEIGHT = 600
+WIDTH = 800; HEIGHT = WIDTH
 SCREEN = pygame.display.set_mode((WIDTH, HEIGHT))
 pygame.display.set_caption("Search Algorithm Visualizer")
 
@@ -89,7 +89,7 @@ class Node:
     
     def reset(self):
         self.color = WHITE
-        
+    
     def make_path(self):
         self.color = CLAY
         
@@ -97,6 +97,11 @@ class Node:
         pygame.draw.rect(SCREEN, self.color, [self.x,self.y, self.width, self.width])
         
     def update_neighbors(self, grid):
+        self.neighbors = []
+        
+        if self.is_barrier():
+            return
+        
         up    = grid[self.row][self.col-1]   if self.col > 0                 else None
         down  = grid[self.row][self.col+1]   if self.col < self.total_rows-1 else None
         left  = grid[self.row-1][self.col]   if self.row > 0                 else None
@@ -165,6 +170,17 @@ def get_node(coordinate, grid, rows, width_of_screen):
     
     return grid[x][y]
 
+def make_borders(grid):
+    
+    width = len(grid)-1
+    
+    grid[5][19].make_barrier() 
+    for i in range(len(grid)):
+        grid[0][i].make_barrier()     
+        grid[width][i].make_barrier() 
+        grid[i][width].make_barrier() 
+        grid[i][0].make_barrier()     
+        
 def draw_path(lambda_draw, came_from, curr_node):
     while curr_node in came_from:
         curr_node = came_from[curr_node]
@@ -198,7 +214,7 @@ def BFS(lambda_draw, grid, start, end):
             break
         
         for neighbor in curr_node.neighbors:
-            if not neighbor.is_visited():
+            if not neighbor.is_visited() and not neighbor.is_barrier():
                 neighbor.make_visited()
                 queue.put(neighbor)
                 lambda_draw()
@@ -208,6 +224,9 @@ def DFS(lambda_draw, grid, start, end):
     
     stack = [start]
     
+    print('neighbors:',len(start.neighbors))
+    print('randome node:',len(grid[10][10].neighbors))
+
     came_from = {}
     
     curr_node = None
@@ -229,14 +248,15 @@ def DFS(lambda_draw, grid, start, end):
             break
         
         for neighbor in curr_node.neighbors:
-            if not neighbor.is_visited():
+            if not neighbor.is_visited() and not neighbor.is_barrier():
                 neighbor.make_visited()
                 stack.append(neighbor)
                 lambda_draw()
             elif neighbor in stack:
                 stack.pop(stack.index(neighbor))
-                
+
         time.sleep(.03)
+    
 
 def main():
     fps = 60
@@ -245,10 +265,10 @@ def main():
     rows  = 20
     grid = make_grid(rows, WIDTH)
     
+    make_borders(grid) #to avoid a bug that breaks burraries around the edges
+    
     start = None
     end   = None
-    
-    solving = False
     
     while True:
         
@@ -258,9 +278,6 @@ def main():
             if event.type == pygame.QUIT:
                 pygame.quit()
                 sys.exit()
-            
-            if solving: 
-                pass
 
             if pygame.mouse.get_pressed()[0]: # left click
                 node = get_node(event.pos, grid, rows, WIDTH)
@@ -285,13 +302,40 @@ def main():
                 node.reset()
             
             if event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_SPACE and not solving and start and end:
+                if event.key == pygame.K_SPACE and start and end:
                     print('space!')
                     for row in grid:
                         for node in row:
                             node.update_neighbors(grid)
                     # BFS(lambda: draw(grid,lambda:draw_grid(rows, WIDTH)), grid, start, end)
+                    # DFS(lambda: draw(grid,lambda:draw_grid(rows, WIDTH)), grid, start, end)
+                   
+                if event.key == pygame.K_r:
+                    print('restart!')
+                    for row in grid:
+                        for node in row:
+                            if not node.is_start() and not node.is_end() and not node.is_barrier():
+                                node.reset()
+                            
+                            if node.is_visited() == True:
+                                print('node:',node)
+                                # print('node.is_visited():',node.is_visited())
+                    print('restart DONE!\n')
+                    
+                if event.key == pygame.K_d and start and end:
+                    print('DFS!')
+                    for row in grid:
+                        for node in row:
+                            node.update_neighbors(grid)
                     DFS(lambda: draw(grid,lambda:draw_grid(rows, WIDTH)), grid, start, end)
+                    
+                if event.key == pygame.K_b and start and end:
+                    print('BFS!')
+                    for row in grid:
+                        for node in row:
+                            node.update_neighbors(grid)
+                    BFS(lambda: draw(grid,lambda:draw_grid(rows, WIDTH)), grid, start, end)
+                    
         pygame.display.update()
     
 main()
