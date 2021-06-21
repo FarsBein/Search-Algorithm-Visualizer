@@ -91,8 +91,11 @@ class Node:
         self.color = WHITE
     
     def make_path(self):
-        self.color = CLAY
-        
+        self.color = GREEN
+    
+    def make_pink(self):
+        self.color = PINK
+           
     def draw(self):
         pygame.draw.rect(SCREEN, self.color, [self.x,self.y, self.width, self.width])
         
@@ -175,8 +178,9 @@ def make_borders(grid):
         grid[i][0].make_barrier()     
         
 def draw_path(lambda_draw, came_from, curr_node):
+    
     while curr_node in came_from:
-        curr_node = came_from[curr_node]
+        curr_node = came_from.pop(curr_node)
         curr_node.make_path()
         lambda_draw()
 
@@ -186,7 +190,7 @@ def BFS(lambda_draw, grid, start, end):
     
     queue.put(start)
 
-    came_from = {}
+    came_from = {} # might use to draw the final path
     
     curr_node = None
     
@@ -217,7 +221,7 @@ def DFS(lambda_draw, grid, start, end):
     
     stack = [start]
 
-    came_from = {}
+    came_from = {} # might use to draw the final path
     
     curr_node = None
     
@@ -225,28 +229,42 @@ def DFS(lambda_draw, grid, start, end):
         # maintain the color of start and end nodes
         start.make_start()
         end.make_end()
-        
-        # exit while solving 
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                pygame.quit()
 
         curr_node = stack.pop()
         
-        if curr_node == end or end in stack:
-            draw_path(lambda_draw,came_from, curr_node) # curr_node = end, so either can work
+        if curr_node == end:
+            draw_path(lambda_draw,came_from, stack, curr_node) # curr_node = end, so either can work
+            start.make_start()
             break
         
+        num_neighbors = len(curr_node.neighbors)
         for neighbor in curr_node.neighbors:
             if not neighbor.is_visited() and not neighbor.is_barrier():
                 neighbor.make_visited()
                 stack.append(neighbor)
+                came_from[neighbor] = curr_node
                 lambda_draw()
             elif neighbor in stack:
-                stack.pop(stack.index(neighbor))
-
+                num_neighbors -=1
+        
+        # pop the curr_node if all its paths are blocked/visited and still have not reached end
+        if num_neighbors == 0:
+            del came_from[neighbor]
+            stack.pop()
+        
+        print(stack)
         time.sleep(.03)
-    
+        
+        # GUI functionalities
+        for event in pygame.event.get():
+            # exit while solving 
+            if event.type == pygame.QUIT:
+                pygame.quit()
+            # end solving
+            if event.type == pygame.KEYDOWN:
+                    if event.key == pygame.K_SPACE:
+                        stack = []
+
 def main():
     fps = 60
     fps_clock = pygame.time.Clock()
@@ -297,6 +315,8 @@ def main():
                         for node in row:
                             node.reset()
                     make_borders(grid)
+                    start = False
+                    end = False
                     # BFS(lambda: draw(grid,lambda:draw_grid(rows, WIDTH)), grid, start, end)
                     # DFS(lambda: draw(grid,lambda:draw_grid(rows, WIDTH)), grid, start, end)
                    
