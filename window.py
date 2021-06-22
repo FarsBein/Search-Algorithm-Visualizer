@@ -178,7 +178,6 @@ def make_borders(grid):
         grid[i][0].make_barrier()     
         
 def draw_path(lambda_draw, came_from, curr_node):
-    
     while curr_node in came_from:
         curr_node = came_from.pop(curr_node)
         curr_node.make_path()
@@ -190,7 +189,7 @@ def BFS(lambda_draw, grid, start, end):
     
     queue.put(start)
 
-    came_from = {} # might use to draw the final path
+    came_from = {} 
     
     curr_node = None
     
@@ -199,29 +198,36 @@ def BFS(lambda_draw, grid, start, end):
         start.make_start()
         end.make_end()
         
-        # exit while solving 
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                pygame.quit()
-
         curr_node = queue.get()
-        
+    
         if curr_node == end:
             draw_path(lambda_draw,came_from, curr_node) # curr_node = end, so either can work
+            start.make_start()
             break
         
         for neighbor in curr_node.neighbors:
             if not neighbor.is_visited() and not neighbor.is_barrier():
                 neighbor.make_visited()
                 queue.put(neighbor)
+                came_from[neighbor] = curr_node
                 lambda_draw()
         time.sleep(.03)
+        
+        # GUI functionalities
+        for event in pygame.event.get():
+            # exit while solving 
+            if event.type == pygame.QUIT:
+                pygame.quit()
+            # end solving
+            if event.type == pygame.KEYDOWN:
+                    if event.key == pygame.K_SPACE:
+                        queue = Queue()
 
 def DFS(lambda_draw, grid, start, end):
     
     stack = [start]
 
-    came_from = {} # might use to draw the final path
+    came_from = {} 
     
     curr_node = None
     
@@ -233,7 +239,7 @@ def DFS(lambda_draw, grid, start, end):
         curr_node = stack.pop()
         
         if curr_node == end:
-            draw_path(lambda_draw,came_from, stack, curr_node) # curr_node = end, so either can work
+            draw_path(lambda_draw,came_from, curr_node) # curr_node = end, so either can work
             start.make_start()
             break
         
@@ -249,7 +255,7 @@ def DFS(lambda_draw, grid, start, end):
         
         # pop the curr_node if all its paths are blocked/visited and still have not reached end
         if num_neighbors == 0:
-            del came_from[neighbor]
+            # del came_from[neighbor] don't need to remove unused keys bc they will never be called
             stack.pop()
         
         print(stack)
