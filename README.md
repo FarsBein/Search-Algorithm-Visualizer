@@ -11,7 +11,7 @@ DFS however can go indefinitely if the size of graph is infant.
 # Showcase
 
 ### Solved maze using Depth First Search (DFS) vs using Breath First Search (BFS)
-<img src='https://user-images.githubusercontent.com/53714581/122844973-bbc1c180-d2d0-11eb-8e15-24452308a676.JPG' width=480/> <img src='https://user-images.githubusercontent.com/53714581/122844976-bbc1c180-d2d0-11eb-8e06-8725c51a861f.JPG' width=480/>
+<img src='https://user-images.githubusercontent.com/53714581/122844973-bbc1c180-d2d0-11eb-8e15-24452308a676.JPG' width=400/> <img src='https://user-images.githubusercontent.com/53714581/122844976-bbc1c180-d2d0-11eb-8e06-8725c51a861f.JPG' width=400/>
 
 <!-- ### Using Breath First Search BFS -->
 <!-- ![3](https://user-images.githubusercontent.com/53714581/122844976-bbc1c180-d2d0-11eb-8e06-8725c51a861f.JPG) -->
