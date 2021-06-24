@@ -89,7 +89,7 @@ For DFS, I used Stack to track visited/unvisted nodes and used come_from to trac
 
 or
 
-use find the package in PyPi https://pypi.org/project/DFS-BFS-visualizer/
+Find the package in PyPi https://pypi.org/project/DFS-BFS-visualizer/
 
 
 # Instruction on how to use
