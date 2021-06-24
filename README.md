@@ -21,11 +21,8 @@ DFS however can go indefinitely if the size of graph is infant.
 For BFS, I used Queues to track visited/unvisted nodes and used come_from to track the final path. 
 ```
     queue = Queue()
-    
     queue.put(start)
-
     came_from = {} 
-    
     curr_node = None
     
     while not queue.empty():
@@ -46,58 +43,40 @@ For BFS, I used Queues to track visited/unvisted nodes and used come_from to tra
                 queue.put(neighbor)
                 came_from[neighbor] = curr_node
                 lambda_draw()
-        time.sleep(.03)
-        
-        # GUI functionalities
-        for event in pygame.event.get():
-            # exit while solving 
-            if event.type == pygame.QUIT:
-                pygame.quit()
-            # end solving
-            if event.type == pygame.KEYDOWN:
-                    if event.key == pygame.K_SPACE:
-                        queue = Queue()
 ```
 
 For DFS, I used Stack to track visited/unvisted nodes and used come_from to track the final path. 
 ```
-    queue = Queue()
-    
-    queue.put(start)
-
+    stack = [start]
     came_from = {} 
-    
     curr_node = None
     
-    while not queue.empty():
+    while stack:
         # maintain the color of start and end nodes
         start.make_start()
         end.make_end()
+
+        curr_node = stack.pop()
         
-        curr_node = queue.get()
-    
         if curr_node == end:
             draw_path(lambda_draw,came_from, curr_node) # curr_node = end, so either can work
             start.make_start()
             break
         
+        num_neighbors = len(curr_node.neighbors)
         for neighbor in curr_node.neighbors:
             if not neighbor.is_visited() and not neighbor.is_barrier():
                 neighbor.make_visited()
-                queue.put(neighbor)
+                stack.append(neighbor)
                 came_from[neighbor] = curr_node
                 lambda_draw()
-        time.sleep(.03)
+            elif neighbor in stack:
+                num_neighbors -=1
         
-        # GUI functionalities
-        for event in pygame.event.get():
-            # exit while solving 
-            if event.type == pygame.QUIT:
-                pygame.quit()
-            # end solving
-            if event.type == pygame.KEYDOWN:
-                    if event.key == pygame.K_SPACE:
-                        queue = Queue()
+        # pop the curr_node if all its paths are blocked/visited and still have not reached end
+        if num_neighbors == 0:
+            # del came_from[neighbor] don't need to remove unused keys bc they will never be called
+            stack.pop()
 ```
 
 # Insulation
