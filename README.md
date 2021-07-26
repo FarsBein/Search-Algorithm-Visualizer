@@ -79,7 +79,7 @@ For DFS, I used Stack to track visited/unvisted nodes and used come_from to trac
             stack.pop()
 ```
 
-# Instulation
+# Set up and Installation
 
 1- copy this repostery
 
