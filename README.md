@@ -81,11 +81,9 @@ For DFS, I used Stack to track visited/unvisted nodes and used come_from to trac
 
 # Set up and Installation
 
-1- copy this repostery
+1- Clone this repostery
 
 2- Inside the Command Prompt type ```pygame window.py```
-
-3- Enjoy
 
 or
 
