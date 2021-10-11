@@ -90,7 +90,7 @@ or
 Find the package in PyPi https://pypi.org/project/DFS-BFS-visualizer/
 
 
-# Instruction on how to use
+# Instructions on how to use
 - Left click to draw on window and Right click to Erase 
 - You have to draw the start and end node firsts before barrier
 - Press D to solve using DFS
